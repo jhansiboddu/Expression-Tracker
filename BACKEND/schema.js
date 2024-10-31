@@ -10,27 +10,19 @@ const sessionSchema = new mongoose.Schema({
   modelResponse: { type: Array, required: false }
 });
 
-// Create a model for the schema
-const Session = mongoose.model('Session', sessionSchema);
-
-module.exports = Session;
-
-// admin.js
-
 // Define schema for admin information
-const adminSchema = new mongoose.Schema({
+const adminInfoSchema = new mongoose.Schema({
+  name: { type: String },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  name: { type: String }
+  password: { type: String, required: true }
 });
 
-// Use a different connection for the `adminInfo` database
-const adminConnection = mongoose.createConnection(
-  'mongodb://<username>:<password>@cluster0.mongodb.net/adminInfoDB'
-);
 
-// Create a model for the admin schema
-const Admin = adminConnection.model('Admin', adminSchema);
+// Create a model for the schema
+const Session = mongoose.model('Session', sessionSchema);
+const AdminInfo = mongoose.model('AdminInfo', adminInfoSchema);
 
-module.exports = {Session,Admin};
+
+// Export both models
+module.exports = {Session,AdminInfo};
 

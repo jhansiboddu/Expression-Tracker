@@ -2,16 +2,16 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
-const {connectToDB, adminConnection }  = require('./db_connection');  // Import the db connection
-const {Session,Admin} = require('./schema');  // Import the session schema and admin schema
+const connectToDB = require('./db_connection');  // Import the db connection
+const {Session,AdminInfo} = require('./schema');  // Import the session schema
 const cors = require('cors');
 const fs = require('fs');
 const axios = require('axios');
-const bcrypt = require('bcrypt');
+
 require('dotenv').config();  // Load environment variables
 const app = express();
-const PORT = process.env.PORT;
 
+// Allow requests from localhost:3000
 app.use(cors({
     origin: 'http://localhost:3000',
 }));
@@ -391,55 +391,50 @@ async function sendImageToModel(imageBuffer, retries = 5, delay = 5000) {
     try {
         await connectToDB(); // Establish the MongoDB connection
         const PORT = process.env.PORT || 5000;
-        // app.listen(PORT, () => {
-        //     console.log(`Server is running on port ${PORT}`);
-        // });
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
     } catch (error) {
         console.error('Failed to start the server:', error);
     }
 })();
 
-
-// Signup route
-app.post('/signup', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10); // hash password
-
-    // Save new admin data to adminInfo database
-    const newAdmin = new Admin({ email, password: hashedPassword });
-    await newAdmin.save();
-
-    res.status(201).json({ message: 'Signup successful!' });
-  } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ message: 'Error during signup' });
-  }
-});
-
-// Login route
+// Login Route
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   try {
-    // Check if email exists
-    const admin = await Admin.findOne({ email });
+    const admin = await AdminInfo.findOne({ email});
     if (!admin) {
-      return res.status(404).json({ message: 'Email ID does not exist' });
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Incorrect password' });
+      return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    res.status(200).json({ message: 'Login successful' });
+    res.json({ message: 'Login successful' });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Error during login' });
   }
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Signup Route
+app.post('/signup', async (req, res) => {
+  const { name,email, password } = req.body;
+  const existingAdmin = await AdminInfo.findOne({ username });
+  try {
+    if (existingAdmin) {
+      res.status(409).json({ message: 'Username already taken' });
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newAdmin = new AdminInfo({name,email, password: hashedPassword});
+      await newAdmin.save();
+      res.status(201).json({ message: 'Signup successful', admin: newAdmin });
+    }
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
