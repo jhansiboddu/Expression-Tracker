@@ -11,20 +11,20 @@ import OverallAnalysis from './components/OverallAnalysis';
 import DetailedAnalysis from './components/DetailedAnalysis';
 import Game from './components/Game';
 import LoginSignUp from "./components/loginSignUp";
+import Login1 from "./components/Login1";
+import Signup from "./components/Signup";
 
 const Main = () => {
   const location = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [action, setAction] = useState(null); // Track if 'Play' or 'Get Analysis' was clicked
-    
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };// Determine which background class to apply
+  
+  //  // Function to handle login success
+  //  const handleLoginSuccess = () => {
+  //   console.log("Login success. Setting isAuthenticated to true.");
+  //   setIsAuthenticated(true);
+  // };
 
-  const handleActionClick = (actionType) => {
-    setAction(actionType);
-    setIsAuthenticated(false); // Reset authentication when action changes
-  };
   let backgroundClass = 'no-background'; // Default background class
 
   if (location.pathname === '/') {
@@ -45,17 +45,19 @@ const Main = () => {
     <div className={backgroundClass}>
       <div className="content">
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Login1/>} />
           <Route path="/login" element={<Login />} />
           <Route path="/game" element={<Game />} />
-          {/* <Route path="/analysis" element={<Analysis />} /> */}
+          <Route path="/analysis" element={<Analysis />} />
           <Route path="/analysis/:sessionId" element={<OverallAnalysis />} />
           <Route path="/DetailedAnalysis/:sessionId" element={<DetailedAnalysis />} />
-          {/* <Route path="/analysis" element={<LoginSignUp/>}/> */}
-          <Route 
-            path="/analysis" 
-            element={isAuthenticated && action === 'getAnalysis' ? <Analysis /> : <LoginSignUp onLoginSuccess={handleLoginSuccess} />} 
-          />
+          {/* <Route path="/adminlogin" element={<Login1 onLoginSuccess={handleLoginSuccess} />} /> */}
+          <Route path="/adminlogin" element={<Login1 />} /> 
+          <Route path="/signup" element = {<Signup />}/>
+          {/* <Route
+            path="/analysis"
+            element={isAuthenticated ? <Analysis /> : <Navigate to="/adminlogin" />} // Protected route
+          /> */}
         </Routes>
       </div>
     </div>

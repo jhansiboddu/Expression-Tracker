@@ -1,0 +1,2 @@
+keep your dotenv file same
+create a new collection in existing database

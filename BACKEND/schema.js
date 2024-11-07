@@ -12,7 +12,7 @@ const sessionSchema = new mongoose.Schema({
 
 // Define schema for admin information
 const adminInfoSchema = new mongoose.Schema({
-  name: { type: String },
+  // name: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }
 });

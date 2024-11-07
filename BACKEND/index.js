@@ -7,7 +7,7 @@ const {Session,AdminInfo} = require('./schema');  // Import the session schema
 const cors = require('cors');
 const fs = require('fs');
 const axios = require('axios');
-
+const bcrypt = require("bcrypt"); 
 require('dotenv').config();  // Load environment variables
 const app = express();
 
@@ -399,42 +399,64 @@ async function sendImageToModel(imageBuffer, retries = 5, delay = 5000) {
     }
 })();
 
-// Login Route
-app.post('/login', async (req, res) => {
+app.get("/",cors(),(req,res)=>{
+    res.status(200).json("Home works!");
+})
+app.get("/blah",cors(),(req,res)=>{
+    res.status(200).json("blah works!");
+})
+
+app.post("/adminlogin", async (req, res) => {
   const { email, password } = req.body;
+console.log(req.body);
   try {
-    const admin = await AdminInfo.findOne({ email});
-    if (!admin) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
+      const admin = await AdminInfo.findOne({ email: email });
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email or password' });
-    }
+      if (admin) {
+          // If passwords are stored as hashes, use bcrypt.compare
+          const isPasswordCorrect = password === admin.password; // Update this line if hashing is used
+          // const isPasswordCorrect = await bcrypt.compare(password, admin.password);
 
-    res.json({ message: 'Login successful' });
+          if (isPasswordCorrect) {
+              res.json("exist");
+          } else {
+              res.json("wrong password"); // Indicate if password is incorrect
+          }
+      } else {
+          res.json("not exists"); // Email not found
+      }
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Error during login' });
+      console.error("Error during admin login:", error);
+      res.status(500).json("fail");
   }
 });
 
-// Signup Route
-app.post('/signup', async (req, res) => {
-  const { name,email, password } = req.body;
-  const existingAdmin = await AdminInfo.findOne({ username });
-  try {
-    if (existingAdmin) {
-      res.status(409).json({ message: 'Username already taken' });
-    } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const newAdmin = new AdminInfo({name,email, password: hashedPassword});
-      await newAdmin.save();
-      res.status(201).json({ message: 'Signup successful', admin: newAdmin });
+
+app.post("/signup",async(req,res)=>{
+    const{email,password}=req.body
+
+    const data={
+        email:email,
+        password:password
     }
-  } catch (error) {
-    console.error('Signup error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+
+    try{
+        const check=await AdminInfo.findOne({email:email})
+
+        if(check){
+            res.json("exist")
+        }
+        else{
+            res.json("not exists")
+            await AdminInfo.insertMany([data])
+        }
+
+    }
+    catch(e){
+        res.json("fail")
+    }
+
+})
+
+
+
