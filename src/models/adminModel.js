@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const ChildAccountSchema=require('./childModel').schema;
 
 const AdminSchema = new mongoose.Schema({
     admin_name: { type: String, required: true },

@@ -9,4 +9,4 @@ const ChildAccountSchema = new mongoose.Schema({
 
 const ChildDetails = mongoose.model('ChildAccountsSchema',ChildAccountSchema);
 
-model.exports=ChildDetails;
+module.exports=ChildDetails;

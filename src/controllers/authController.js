@@ -1,6 +1,8 @@
 const UserAuth=require('../models/authModel');
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
+
+
 const register=async(req,res) =>{
     try {
         const { admin_name, phone_number, admin_email, admin_role } = req.body;
@@ -55,10 +57,6 @@ const login=async(req,res) =>{
         process.env.JWT_SECRET,          // Secret key
         { expiresIn: '1h' }              // Token expiry (1 hour)
       );
-      //The server sends the JWT back to the client as an HttpOnly cookie using res.cookie()
-      res.cookie("jwt", token, {
-        maxAge: 3600000, // 1 hour expiry
-      });
       // Send role-based response
       return res.status(200).json({
         message: `Welcome, ${user.role}!`,

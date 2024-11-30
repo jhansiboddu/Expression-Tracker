@@ -5,8 +5,8 @@ const {
   storage,
   screenshotStorage,
   saveAnalysisResult,
-} = require("../helper/child_helper.js");
-const { Game } = require("../schema.js");
+} = require("../controllers/child_helper.js");
+const { Game } = require("../models/gameModel.js");
 
 const upload = multer({ storage: storage });
 

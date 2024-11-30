@@ -2,22 +2,19 @@ const express = require("express");
 const router = express.Router();
 const { Session } = require("../models/sessionModel.js");
 const fs = require("fs");
-const authenticateToken = require('./token.js')
+const authenticateToken=require("../middlewares/authMiddleware.js");
+const authorizeRoles=require("../middlewares/roleMiddleware.js");
 const {
   getSessionMedia,
   sendImageToModel,
   saveAnalysisResults,
-} = require("../helper/admin_helper.js");
+} = require("../controllers/admin_helper.js");
 
 // Get all session IDs, session names, and timestamps
-router.get("/sessions", async (req, res) => {
+router.get("/sessions",authenticateToken,authorizeRoles("admin"), async (req, res) => {
   try {
     // Fetch all sessions with sessionId, sessionName, gameName, and timestamp fields
-    const sessions = await Session.find(
-      {},
-      "sessionId sessionName gameName timestamp"
-    );
-
+    const sessions = await Session.find({},"sessionId sessionName gameName timestamp" );
     // Map to create an array of objects with sessionId, sessionName, gameName, and formatted timestamp
     const sessionData = sessions.map((session) => {
       const date = new Date(session.timestamp);

@@ -1,36 +1,30 @@
 const express = require("express");
-const app = express();
-const path = require("path");
-const connectToDB = require("./config/db_connection"); // Import the db connection
-const Session = require("./models/sessionModel");
-const Game=require("./models/gameModel");
-const AdminDetails=require("./models/adminModel");
-const ChildDetails=require("./models/childModel");
-const UserAuth=require("./models/authModel");
 const cors = require("cors");
-const bcrypt = require("bcryptjs");
 const bodyParser = require("body-parser");
+const connectToDB = require("./config/db_connection"); // Import the db connection
+const path = require("path");
 const childRouter = require("./routes/child");
 const adminRouter = require("./routes/admin");
 const authRoutes=require("./routes/authRoutes");
 const userRoutes=require("./routes/userRoutes");
 
-const nodemailer=require('nodemailer');
+const app = express();
 require("dotenv").config(); // Load environment variables
-app.use(bodyParser.json());
 
-// Allow requests from localhost:3000
+// Global middleware
 app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true, // Allow cookies to be sent with cross-origin requests
-    methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
   })
 );
+app.use(bodyParser.json());
 
+//Routess
 app.use("/child", childRouter);
 app.use("/admin", adminRouter);
-
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 // Get the next available child name based on the current highest ChildXXX
 app.get("/next-child", async (req, res) => {
   try {
@@ -140,63 +134,63 @@ app.get("/sessions", async (req, res) => {
 
 
 // Get all pending requests
-app.get('/admin/requests', async (req, res) => {
-  try {
-    const requests = await User.find({ status: 'Pending' });
-    res.status(200).json(requests);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching requests', error });
-  }
-});
-app.post('/admin/update-status',async(req,res)=>{
-  const { adminId ,action} = req.body;
+// app.get('/admin/requests', async (req, res) => {
+//   try {
+//     const requests = await User.find({ status: 'Pending' });
+//     res.status(200).json(requests);
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error fetching requests', error });
+//   }
+// });
+// app.post('/admin/update-status',async(req,res)=>{
+//   const { adminId ,action} = req.body;
 
-  try {
-    const admin = await AdminDetails.findById(adminId);
-    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+//   try {
+//     const admin = await AdminDetails.findById(adminId);
+//     if (!admin) return res.status(404).json({ message: 'Admin not found' });
 
-    // Update verification status
-    admin.status = action;
-    await admin.save();
-    if(action==='Approved'){
-        // Generate password and update UserAuth
-       const password = Math.random().toString(36).slice(-8);
+//     // Update verification status
+//     admin.status = action;
+//     await admin.save();
+//     if(action==='Approved'){
+//         // Generate password and update UserAuth
+//        const password = Math.random().toString(36).slice(-8);
 
-       let userAuth = await UserAuth.findOne({ username: admin.admin_email });
-       if (!userAuth) {
-        userAuth = new UserAuth({
-          username: admin.admin_email,
-          role: admin.admin_role,
-          password: await bcrypt.hash(password, 10),
-          isVerified: true
-        });
-       }
-       else {
-        userAuth.password = await bcrypt.hash(password, 10);
-        userAuth.isVerified = true;
-      }
-       await userAuth.save();
-      // Send confirmation email
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER, // Set this in your .env file
-           pass: process.env.EMAIL_PASS // Set this in your .env file
-        }
-      });
+//        let userAuth = await UserAuth.findOne({ username: admin.admin_email });
+//        if (!userAuth) {
+//         userAuth = new UserAuth({
+//           username: admin.admin_email,
+//           role: admin.admin_role,
+//           password: await bcrypt.hash(password, 10),
+//           isVerified: true
+//         });
+//        }
+//        else {
+//         userAuth.password = await bcrypt.hash(password, 10);
+//         userAuth.isVerified = true;
+//       }
+//        await userAuth.save();
+//       // Send confirmation email
+//       const transporter = nodemailer.createTransport({
+//         service: 'gmail',
+//         auth: {
+//           user: process.env.EMAIL_USER, // Set this in your .env file
+//            pass: process.env.EMAIL_PASS // Set this in your .env file
+//         }
+//       });
     
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: user.email,
-        subject: 'Registration Approved',
-        text: `Hello ${admin.admin_name},\n\nYour registration as a ${admin.admin_role} has been approved. Your login credentials are:\n\nEmail: ${admin.admin_email}\nPassword: ${password}\n\nPlease log in and change your password after logging in.\n\nRegards,\nTeam`
-      };
-      await transporter.sendMail(mailOptions);
-    }
-    res.status(200).json({ message: `Admin ${action.toLowerCase()} successfully.` });
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating admin status.', error });
-  }
-});
+//       const mailOptions = {
+//         from: process.env.EMAIL_USER,
+//         to: user.email,
+//         subject: 'Registration Approved',
+//         text: `Hello ${admin.admin_name},\n\nYour registration as a ${admin.admin_role} has been approved. Your login credentials are:\n\nEmail: ${admin.admin_email}\nPassword: ${password}\n\nPlease log in and change your password after logging in.\n\nRegards,\nTeam`
+//       };
+//       await transporter.sendMail(mailOptions);
+//     }
+//     res.status(200).json({ message: `Admin ${action.toLowerCase()} successfully.` });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Error updating admin status.', error });
+//   }
+// });
 
 
